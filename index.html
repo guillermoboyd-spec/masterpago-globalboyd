@@ -1,17 +1,290 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MasterPago - Gestión de Pagos Inteligente</title>
-    <meta name="description" content="Organiza, gestiona y automatiza tus pagos mensuales de impuestos y servicios con MasterPago y Global Boyd." />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Pago - by Global Boyd</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js');
+        });
+      }
+    </script>
+    <style>
+        :root {
+            --bg: #0b0c10;
+            --card: rgba(22, 24, 33, 0.75);
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.3);
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.03);
+            --error: #f43f5e;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit', sans-serif; }
+        body { background-color:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; padding-bottom:90px; }
+        .app-container { max-width:480px; margin:0 auto; padding:24px; }
+        
+        .view { display:none; animation:fadeIn 0.4s ease; }
+        .view.active { display:block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        header { display:flex; flex-direction:column; align-items:center; margin-bottom:32px; text-align:center; }
+        .logo-img { width:80px; height:80px; border-radius:20px; position:relative; z-index:2; object-fit:cover; box-shadow:0 15px 35px rgba(0,0,0,0.5); }
+        .logo-glow { position:absolute; width:100px; height:100px; background:var(--primary); filter:blur(40px); opacity:0.25; border-radius:50%; }
+        h1 { font-size:1.9rem; font-weight:700; margin-top:12px; }
+        
+        .country-pill { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.06); padding:8px 16px; border-radius:18px; margin-top:12px; cursor:pointer; border:1px solid var(--border); transition:0.3s; }
+        .country-pill span { font-size:0.8rem; font-weight:700; color:var(--primary); }
+
+        .card { background:var(--card); backdrop-filter:blur(15px); border-radius:28px; padding:24px; border:1px solid var(--border); margin-bottom:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .card-main { background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(22,24,33,0.8) 100%); border-color: rgba(16,185,129,0.2); }
+        .amount-container { display:flex; align-items:baseline; gap:4px; margin-bottom:16px; }
+        .currency { font-size:1.5rem; font-weight:600; color:var(--primary); }
+        .amount { font-size:2.6rem; font-weight:700; }
+        .stats-row { display:flex; gap:20px; border-top:1px solid var(--border); padding-top:16px; }
+
+        .service-item { display:flex; justify-content:space-between; align-items:center; background:var(--glass); padding:16px; border-radius:22px; border:1px solid var(--border); margin-bottom:12px; cursor:pointer; }
+        .icon-box { width:44px; height:44px; background:rgba(255,255,255,0.05); border-radius:14px; display:flex; align-items:center; justify-content:center; color:var(--primary); }
+        .badge { font-size:0.65rem; padding:4px 12px; border-radius:14px; font-weight:800; }
+        .badge-pending { background:rgba(245, 158, 11, 0.15); color:#f59e0b; }
+        .badge-paid { background:rgba(16, 185, 129, 0.15); color:#10b981; }
+
+        .btn-primary { width:100%; background:var(--primary); color:#000; border:none; padding:18px; border-radius:20px; font-weight:800; font-size:1rem; cursor:pointer; display:flex; gap:10px; justify-content:center; align-items:center; transition:0.2s; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
+        .btn-primary:active { transform:scale(0.97); }
+        .btn-secondary { background:rgba(255,255,255,0.04); border:1px solid var(--border); color:#fff; padding:14px; border-radius:16px; cursor:pointer; width:100%; font-weight:600; transition:0.3s; }
+
+        .bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:rgba(10,11,16,0.92); backdrop-filter:blur(20px); border-top:1px solid var(--border); display:flex; padding:12px 0 28px; z-index:100; }
+        .nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; color:var(--text-muted); cursor:pointer; transition:0.3s; }
+        .nav-item.active { color:var(--primary); }
+        .nav-item span { font-size:0.65rem; font-weight:700; }
+
+        .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.92); display:none; align-items:center; justify-content:center; z-index:1000; padding:24px; backdrop-filter:blur(10px); }
+        .modal-content { width:100%; max-width:400px; background:#111218; border-radius:32px; padding:32px; border:1px solid var(--border); position:relative; animation:modalPop 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+        @keyframes modalPop { from { transform:scale(0.85); opacity:0; } to { transform:scale(1); opacity:1; } }
+        .master-input { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:15px; padding:16px; color:#fff; margin-bottom:14px; outline:none; transition:0.3s; font-size:1rem; }
+        .master-input:focus { border-color:var(--primary); background:rgba(255,255,255,0.07); }
+        .master-input.error { border-color:var(--error); background:rgba(244, 63, 94, 0.05); }
+        .list-item { display:flex; justify-content:space-between; align-items:center; padding:18px; background:rgba(255,255,255,0.03); border-radius:18px; margin-bottom:12px; cursor:pointer; border:1px solid transparent; transition:0.2s; }
+        .list-item:hover { border-color:var(--primary); background:rgba(255,255,255,0.06); }
+        
+        .loader { width:52px; height:52px; border:5px solid var(--primary); border-top-color:transparent; border-radius:50%; animation:spin 0.9s cubic-bezier(0.53, 0.21, 0.29, 0.67) infinite; margin:40px auto; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .error-label { color:var(--error); font-size:0.8rem; font-weight:700; margin-bottom:14px; display:none; text-align:center; padding:10px; background:rgba(244, 63, 94, 0.1); border-radius:10px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Dash -->
+        <div id="home-view" class="view active">
+            <header>
+                <div style="position:relative">
+                    <div class="logo-glow"></div>
+                    <img src="logo.png" alt="Logo" id="app-logo" class="logo-img" onerror="this.src='https://images.unsplash.com/photo-1554224155-1697467275c7?auto=format&fit=crop&q=80&w=200'">
+                </div>
+                <h1>Master Pago</h1>
+                <div class="country-pill" id="country-trigger"><i data-lucide="globe" size="16"></i><span id="country-label">Argentina (AR)</span><i data-lucide="chevron-down" size="16"></i></div>
+                <p style="font-size:0.6rem; color:var(--text-muted); letter-spacing:2.5px; margin-top:12px; font-weight:800; text-transform:uppercase">BY GLOBAL BOYD GLOBAL</p>
+            </header>
+
+            <div class="card card-main">
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px; font-weight:700">TOTAL ESTE MES</p>
+                <div class="amount-container"><span class="currency" id="curr-sym">$</span><h1 class="amount" id="total-val">0</h1></div>
+                <div class="stats-row">
+                    <div style="flex:1"><p style="font-size:0.65rem; color:var(--text-muted); font-weight:700">PENDIENTE</p><p style="font-weight:800; color:#f59e0b" id="pend-val">$ 0</p></div>
+                    <div style="flex:1"><p style="font-size:0.65rem; color:var(--text-muted); font-weight:700">PAGADO</p><p style="font-weight:800; color:var(--primary)" id="paid-val">$ 0</p></div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; margin-bottom:14px; align-items:center"><h3>Estado de Pagos</h3><span style="color:var(--primary); cursor:pointer; font-size:0.85rem; font-weight:700">Ver Todo</span></div>
+            <div id="dashboard-list"></div>
+
+            <button class="btn-primary" style="margin-top:24px" id="add-btn"><i data-lucide="plus-circle" size="20"></i>Añadir Nuevo Servicio</button>
+
+            <div class="card" style="background:rgba(255,255,255,0.02); text-align:center; margin-top:28px">
+                <i data-lucide="shield-check" size="36" id="wallet-icon" color="#94a3b8" style="margin-bottom:14px"></i>
+                <h4 id="sync-title">Seguridad Bancaria</h4>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px" id="sync-desc">Vincula tu cuenta para sincronizar pagos.</p>
+                <button class="btn-secondary" id="sync-btn">Configurar Conexión SSL</button>
+            </div>
+        </div>
+
+        <!-- Views -->
+        <div id="payments-view" class="view"><h2>Pagos Globales</h2><div id="p-list" style="margin-top:24px"></div></div>
+        <div id="history-view" class="view"><h2>Historial</h2><p style="text-align:center; padding-top:60px; color:var(--text-muted)">Cargando registros...</p></div>
+        <div id="settings-view" class="view"><h2>Ajustes</h2><div class="card" style="margin-top:24px"><h4>Master Pago Engine</h4><p style="color:var(--text-muted)">Versión 1.0.7 Stable</p></div></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="modal-overlay">
+        <div class="modal-content" id="modal-body"></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-view="home"><i data-lucide="layout-dashboard"></i><span>Home</span></div>
+        <div class="nav-item" data-view="payments"><i data-lucide="wallet"></i><span>Pagos</span></div>
+        <div class="nav-item" data-view="history"><i data-lucide="history"></i><span>Historial</span></div>
+        <div class="nav-item" data-view="settings"><i data-lucide="settings"></i><span>Ajustes</span></div>
+    </nav>
+
+    <script>
+        const countryData = {
+            'Argentina': { code: 'AR', lang: 'es', cur: '$', banks: ['Banco Nación', 'Banco Galicia', 'Banco Macro', 'Santander', 'BBVA', 'Mercado Pago'] },
+            'México': { code: 'MX', lang: 'es', cur: '$', banks: ['BBVA México', 'Banorte', 'Santander México', 'Citibanamex'] },
+            'España': { code: 'ES', lang: 'es', cur: '€', banks: ['Santander', 'BBVA', 'CaixaBank', 'Banco Sabadell'] },
+            'USA': { code: 'US', lang: 'en', cur: '$', banks: ['JPMorgan Chase', 'Bank of America', 'Wells Fargo', 'Citibank'] },
+            'Brasil': { code: 'BR', lang: 'pt', cur: 'R$', banks: ['Itaú', 'Bradesco', 'Nubank', 'Santander Brasil'] },
+            'Colombia': { code: 'CO', lang: 'es', cur: '$', banks: ['Bancolombia', 'Davivienda', 'Nequi', 'Banco de Bogotá'] },
+            'Chile': { code: 'CL', lang: 'es', cur: '$', banks: ['Banco de Chile', 'Santander', 'BCI Chile'] },
+            'Uruguay': { code: 'UY', lang: 'es', cur: '$', banks: ['BROU', 'Itaú', 'Santander'] }
+        };
+
+        const t = {
+            es: { login: 'Acceso Seguro', user: 'CUIT / Usuario Home Banking', pass: 'Clave Personal', connect: 'Verificar y Conectar', syncing: 'Sincronizando con ', error: '¡ERROR! Debes completar los datos' },
+            en: { login: 'Secure Access', user: 'Username / Client ID', pass: 'Personal Password', connect: 'Verify & Connect', syncing: 'Syncing with ', error: 'ERROR! Fields cannot be empty' },
+            pt: { login: 'Acesso Seguro', user: 'Usuário / ID Cliente', pass: 'Senha Pessoal', connect: 'Verificar e Conectar', syncing: 'Sincronizando com ', error: 'ERRO! Preencha os campos' }
+        };
+
+        let services = [{id:1, name:'Luz', amount:15500, status:'pending', icon:'zap'}, {id:2, name:'Internet', amount:32000, status:'paid', icon:'wifi'}];
+        let curCountry = 'Argentina';
+        let connectedBank = null;
+
+        function render() {
+            const data = countryData[curCountry];
+            document.getElementById('country-label').innerText = `${curCountry} (${data.code})`;
+            document.getElementById('curr-sym').innerText = data.cur;
+            
+            const btn = document.getElementById('sync-btn');
+            if (connectedBank) {
+                document.getElementById('sync-title').innerText = connectedBank;
+                document.getElementById('sync-desc').innerText = "CONEXIÓN CIFRADA ACTIVA";
+                document.getElementById('wallet-icon').style.color = "#10b981";
+                btn.style.display = "none";
+            } else {
+                btn.style.display = "block";
+                document.getElementById('sync-title').innerText = "Seguridad Bancaria";
+                document.getElementById('sync-desc').innerText = "Vincula tu cuenta para sincronizar pagos.";
+                document.getElementById('wallet-icon').style.color = "#94a3b8";
+            }
+
+            const total = services.reduce((a,b) => a+b.amount,0);
+            const pend = services.filter(s=>s.status==='pending').reduce((a,b)=>a+b.amount,0);
+            const paid = services.filter(s=>s.status==='paid').reduce((a,b)=>a+b.amount,0);
+
+            document.getElementById('total-val').innerText = total.toLocaleString();
+            document.getElementById('pend-val').innerText = `${data.cur} ${pend.toLocaleString()}`;
+            document.getElementById('paid-val').innerText = `${data.cur} ${paid.toLocaleString()}`;
+
+            const listHtml = services.map(s => `
+                <div class="service-item" style="opacity: ${s.status === 'paid' ? 0.6 : 1}" onclick="toggle(${s.id})">
+                    <div style="display:flex; align-items:center; gap:14px">
+                        <div class="icon-box"><i data-lucide="${s.status === 'paid' ? 'check-circle' : s.icon}"></i></div>
+                        <div><h4>${s.name}</h4><p style="font-size:0.75rem">${s.status==='paid'?'Pagado':'Vence el 10/04'}</p></div>
+                    </div>
+                    <div style="text-align:right"><p style="font-weight:800">${data.cur} ${s.amount.toLocaleString()}</p><span class="badge ${s.status==='paid'?'badge-paid':'badge-pending'}">${s.status.toUpperCase()}</span></div>
+                </div>
+            `).join('');
+            document.getElementById('dashboard-list').innerHTML = listHtml;
+            document.getElementById('p-list').innerHTML = listHtml;
+            lucide.createIcons();
+        }
+
+        window.toggle = (id) => { services = services.map(s=>s.id===id?{...s,status:s.status==='paid'?'pending':'paid'}:s); render(); };
+
+        document.getElementById('sync-btn').onclick = () => {
+            document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3>Seleccionar Entidad</h3><i data-lucide="x" onclick="closeM()" style="cursor:pointer"></i></div>
+                <div style="max-height:300px; overflow-y:auto">
+                    ${countryData[curCountry].banks.map(b => `<div class="list-item" onclick="loginB('${b}')"><span>${b}</span><i data-lucide="chevron-right"></i></div>`).join('')}
+                </div>
+            `;
+            document.getElementById('modal-container').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.loginB = (b) => {
+            const trans = t[countryData[curCountry].lang];
+            document.getElementById('modal-body').innerHTML = `
+                <div style="text-align:center; margin-bottom:24px">
+                    <i data-lucide="lock" color="#10b981" size="36"></i>
+                    <h3 style="margin-top:14px">${trans.login}</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; font-weight:600">${b}</p>
+                </div>
+                <div id="e-lbl" class="error-label">${trans.error}</div>
+                <input type="text" id="user-f" class="master-input" placeholder="${trans.user}">
+                <input type="password" id="pass-f" class="master-input" placeholder="${trans.pass}">
+                <button class="btn-primary" id="final-conn" onclick="validateThenSync('${b}')">${trans.connect}</button>
+            `;
+            lucide.createIcons();
+        };
+
+        window.validateThenSync = (b) => {
+            const user = document.getElementById('user-f').value.trim();
+            const pass = document.getElementById('pass-f').value.trim();
+            const err = document.getElementById('e-lbl');
+            
+            // VALIDACIÓN REAL Y ESTRICTA
+            if (!user || user.length < 3 || !pass || pass.length < 3) {
+                err.style.display = 'block';
+                document.getElementById('user-f').classList.add('error');
+                document.getElementById('pass-f').classList.add('error');
+                return;
+            }
+            
+            const trans = t[countryData[curCountry].lang];
+            document.getElementById('modal-body').innerHTML = `
+                <div style="text-align:center; padding:30px">
+                    <div class="loader"></div>
+                    <h4 style="margin-bottom:10px">${trans.syncing}${b}...</h4>
+                    <p style="color:var(--text-muted); font-size:0.85rem">Estableciendo protocolo de seguridad SSL 256-bit...</p>
+                </div>
+            `;
+            setTimeout(() => { connectedBank = b; closeM(); render(); }, 3500);
+        };
+
+        document.getElementById('country-trigger').onclick = () => {
+            document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px"><h3>Jurisdicción</h3><i data-lucide="x" onclick="closeM()" style="cursor:pointer"></i></div>
+                ${Object.keys(countryData).map(c => `<div class="list-item" onclick="setCountry('${c}')"><span>${c}</span><i data-lucide="${c===curCountry?'check-circle':'chevron-right'}"></i></div>`).join('')}
+            `;
+            document.getElementById('modal-container').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.setCountry = (c) => { curCountry = c; connectedBank = null; closeM(); render(); };
+        window.closeM = () => { document.getElementById('modal-container').style.display = 'none'; };
+
+        document.querySelectorAll('.nav-item').forEach(i => i.onclick = function() {
+            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+            document.getElementById(`${this.dataset.view}-view`).classList.add('active');
+        });
+        
+        document.getElementById('add-btn').onclick = () => {
+             document.getElementById('modal-body').innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:24px"><h3>Nuevo Servicio</h3><i data-lucide="x" onclick="closeM()" style="cursor:pointer"></i></div>
+                <input type="text" id="n-s" class="master-input" placeholder="Nombre (ej: Gas)">
+                <input type="number" id="m-s" class="master-input" placeholder="Monto">
+                <button class="btn-primary" onclick="addS()">Añadir a Dashboard</button>
+             `;
+             document.getElementById('modal-container').style.display = 'flex';
+             lucide.createIcons();
+        };
+        
+        window.addS = () => {
+            const n = document.getElementById('n-s').value;
+            const a = parseInt(document.getElementById('m-s').value);
+            if(n && a) { services.push({id:Date.now(), name:n, amount:a, status:'pending', icon:'file-text'}); closeM(); render(); }
+        }
+
+        render();
+    </script>
+</body>
 </html>

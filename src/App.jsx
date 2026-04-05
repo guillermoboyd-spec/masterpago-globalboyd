@@ -77,8 +77,36 @@ const MasterPagoApp = () => {
     }
   };
 
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    });
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        }
+        setDeferredPrompt(null);
+      });
+    }
+  };
+
   const Dashboard = () => (
     <div className="flex-column fade-in">
+      {deferredPrompt && (
+        <div className="card fade-in" style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid #10b981', marginBottom: '20px', textAlign: 'center' }}>
+          <h4 style={{ color: '#10b981', marginBottom: '10px' }}>¡Instala Master Pago en tu Escritorio!</h4>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '15px' }}>Accede más rápido y sin navegadores abiertos.</p>
+          <button className="btn-primary" onClick={handleInstallClick}>Instalar Ahora</button>
+        </div>
+      )}
       <header className="flex-column" style={{ marginBottom: '32px', alignItems: 'center', textAlign: 'center' }}>
         <div style={{ position: 'relative', marginBottom: '16px' }}>
           <div className="logo-glow"></div>
