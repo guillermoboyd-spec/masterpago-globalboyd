@@ -1,10 +1,10 @@
-const CACHE_NAME = 'masterpago-gb-v1';
+const CACHE_NAME = 'masterpago-v2';
 const assetsToCache = [
   './',
   './index.html',
   './assets/index.js',
   './assets/index.css',
-  './assets/logo.png',
+  './logo.png',
   './manifest.json'
 ];
 
