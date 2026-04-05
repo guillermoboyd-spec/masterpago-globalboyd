@@ -5,10 +5,10 @@
   "display": "standalone",
   "background_color": "#090a0f",
   "theme_color": "#10b981",
-  "description": "Gestión Global de Pagos y Finanzas Personales by Global Boyd.",
+  "description": "Gestión Global de Pagos by Global Boyd.",
   "icons": [
     {
-      "src": "https://guillermoboyd-spec.github.io/masterpago-globalboyd/assets/logo.png",
+      "src": "logo.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
@@ -16,4 +16,3 @@
   ],
   "categories": ["finance", "business"]
 }
-
