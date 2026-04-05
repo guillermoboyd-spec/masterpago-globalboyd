@@ -1,8 +1,11 @@
-const CACHE_NAME = 'masterpago-v1';
+const CACHE_NAME = 'masterpago-gb-v1';
 const assetsToCache = [
-  'index.html',
-  'logo.png',
-  'manifest.json'
+  './',
+  './index.html',
+  './assets/index.js',
+  './assets/index.css',
+  './assets/logo.png',
+  './manifest.json'
 ];
 
 self.addEventListener('install', event => {
