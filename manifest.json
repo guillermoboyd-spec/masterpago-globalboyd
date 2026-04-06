@@ -1,18 +1,28 @@
-{
-  "name": "Master Pago by Global Boyd",
-  "short_name": "Master Pago",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#090a0f",
-  "theme_color": "#10b981",
-  "description": "Gestión Global de Pagos y Finanzas Personales by Global Boyd.",
-  "icons": [
-    {
-      "src": "logo.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "categories": ["finance", "business"]
-}
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" 
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" 
+         IgnorableNamespaces="uap">
+  <Identity Name="GlobalBoydAp.MasterPago" 
+            ProcessorArchitecture="x64" 
+            Publisher="CN=CE0D34C3-931D-4AC8-87B6-DA4C4091D523" 
+            Version="1.0.0.0" />
+  <Properties>
+    <DisplayName>Master Pago</DisplayName>
+    <PublisherDisplayName>Global Boyd Ap</PublisherDisplayName>
+    <Logo>logo.png</Logo>
+  </Properties>
+  <Resources>
+    <Resource Language="es-ES" />
+  </Resources>
+  <Applications>
+    <Application Id="App" Executable="wwahost.exe" EntryPoint="main.html">
+      <uap:VisualElements DisplayName="Master Pago" 
+                          Description="Gestion de activos Global Boyd" 
+                          BackgroundColor="#10b981" 
+                          Square150x150Logo="logo.png" 
+                          Square44x44Logo="logo.png">
+        <uap:DefaultTile Wide310x150Logo="logo.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+</Package>
